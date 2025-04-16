@@ -25,10 +25,18 @@ class BaseDAO:
             return result.scalar_one_or_none()
 
     @classmethod
-    async def add(cls, **values):
+    async def get_all_by_filter(cls, **kwargs):
+        async with async_session_maker() as session:
+            query = select(cls.model).filter_by(**kwargs)
+            result = await session.execute(query)
+
+            return result.scalars().all()
+
+    @classmethod
+    async def add(cls, **kwargs):
         async with async_session_maker() as session:
             async with session.begin():
-                new_instance = cls.model(**values)
+                new_instance = cls.model(**kwargs)
                 session.add(new_instance)
 
                 try:

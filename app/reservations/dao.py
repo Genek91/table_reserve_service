@@ -1,5 +1,7 @@
 from datetime import timedelta, datetime
 
+from fastapi import status
+from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -22,30 +24,36 @@ class ReservationDAO(BaseDAO):
         end_time = reservation_time + timedelta(minutes=duration_minutes)
 
         async with async_session_maker() as session:
-            existing_reservations = await session.execute(
-                select(Reservation).where(Reservation.table_id == table_id)
-            )
-            existing_reservations = existing_reservations.scalars().all()
+            async with session.begin():
+                existing_reservations = await cls.get_all_by_filter(
+                    table_id=table_id
+                )
 
-        for reservation in existing_reservations:
-            existing_end_time = reservation.reservation_time + timedelta(
-                minutes=reservation.duration_minutes
-            )
+                for reservation in existing_reservations:
+                    existing_end_time = reservation.reservation_time + timedelta(
+                        minutes=reservation.duration_minutes
+                    )
 
-            if (reservation_time < existing_end_time and end_time > reservation.reservation_time):
-                return None
+                    if (reservation_time < existing_end_time and end_time > reservation.reservation_time):
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=(
+                                "Выбранное время уже занято другим "
+                                "бронированием"
+                            )
+                        )
 
-        new_reservation = Reservation(
-            customer_name=customer_name,
-            reservation_time=reservation_time,
-            duration_minutes=duration_minutes,
-            table_id=table_id
-        )
-        session.add(new_reservation)
+                new_reservation = Reservation(
+                    customer_name=customer_name,
+                    reservation_time=reservation_time,
+                    duration_minutes=duration_minutes,
+                    table_id=table_id
+                )
+                session.add(new_reservation)
 
-        try:
-            await session.commit()
-            return new_reservation
-        except SQLAlchemyError as e:
-            await session.rollback()
-            raise e
+                try:
+                    await session.commit()
+                    return new_reservation
+                except SQLAlchemyError as e:
+                    await session.rollback()
+                    raise e

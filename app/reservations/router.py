@@ -32,20 +32,13 @@ async def create_reservation(
             )
         )
 
-    new_reservation = await ReservationDAO.add_reservation(
-        **reservation.model_dump()
-    )
-
-    if new_reservation is None:
+    try:
+        return await ReservationDAO.add_reservation(**reservation.model_dump())
+    except SQLAlchemyError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Невозможно создать бронь: "
-                "выбранное время занято другим бронированием"
-            )
+            detail="Ошибка при создании брони"
         )
-
-    return new_reservation
 
 
 @reservation_router.delete(
