@@ -17,7 +17,7 @@ class BaseDAO:
             return result.scalars().all()
 
     @classmethod
-    async def get_by_id(cls, id):
+    async def get_by_id(cls, id: int):
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(id=id)
             result = await session.execute(query)
@@ -48,7 +48,7 @@ class BaseDAO:
                 return new_instance
 
     @classmethod
-    async def delete_by_id(cls, id):
+    async def delete_by_id(cls, id: int):
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(id=id)
             result = await session.execute(query)

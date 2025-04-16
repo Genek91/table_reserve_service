@@ -2,8 +2,9 @@ from datetime import timedelta, datetime
 
 from fastapi import status
 from fastapi.exceptions import HTTPException
-from sqlalchemy import select
+from sqlalchemy import and_, select, cast, text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.types import Interval
 
 from app.dao import BaseDAO
 from app.database import async_session_maker
@@ -25,35 +26,39 @@ class ReservationDAO(BaseDAO):
 
         async with async_session_maker() as session:
             async with session.begin():
-                existing_reservations = await cls.get_all_by_filter(
-                    table_id=table_id
-                )
-
-                for reservation in existing_reservations:
-                    existing_end_time = reservation.reservation_time + timedelta(
-                        minutes=reservation.duration_minutes
-                    )
-
-                    if (reservation_time < existing_end_time and end_time > reservation.reservation_time):
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=(
-                                "Выбранное время уже занято другим "
-                                "бронированием"
-                            )
+                query = (
+                    select(Reservation).where(
+                        and_(
+                            Reservation.table_id == table_id,
+                            Reservation.reservation_time < end_time,
+                            Reservation.reservation_time + cast(
+                                text(f"interval '{duration_minutes} minutes'"),
+                                Interval
+                            ) > reservation_time
                         )
-
-                new_reservation = Reservation(
-                    customer_name=customer_name,
-                    reservation_time=reservation_time,
-                    duration_minutes=duration_minutes,
-                    table_id=table_id
+                    )
                 )
-                session.add(new_reservation)
 
-                try:
-                    await session.commit()
-                    return new_reservation
-                except SQLAlchemyError as e:
-                    await session.rollback()
-                    raise e
+            result = await session.execute(query)
+            conflicting_reservations = result.scalars().first()
+
+            if conflicting_reservations:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Выбранное время уже занято другим бронированием"
+                )
+
+            new_reservation = Reservation(
+                customer_name=customer_name,
+                reservation_time=reservation_time,
+                duration_minutes=duration_minutes,
+                table_id=table_id
+            )
+            session.add(new_reservation)
+
+            try:
+                await session.commit()
+                return new_reservation
+            except SQLAlchemyError as e:
+                await session.rollback()
+                raise e

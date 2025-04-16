@@ -34,10 +34,10 @@ async def create_reservation(
 
     try:
         return await ReservationDAO.add_reservation(**reservation.model_dump())
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ошибка при создании брони"
+            detail=f"Ошибка при создании брони {e}"
         )
 
 
