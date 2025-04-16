@@ -14,6 +14,12 @@ reservation_router = APIRouter(prefix='/reservations', tags=['Брони'])
         "/", summary="Список всех броней"
     )
 async def get_all_reservations() -> list[GetReservationSchema]:
+    """
+    Получение списка всех забронированных столиков.
+
+    Returns:
+        list[GetReservationSchema]: Список объектов бронирований.
+    """
     return await ReservationDAO.get_all()
 
 
@@ -21,6 +27,19 @@ async def get_all_reservations() -> list[GetReservationSchema]:
 async def create_reservation(
     reservation: AddReservationSchema
 ) -> GetReservationSchema:
+    """
+    Создание нового бронирования столика.
+
+    Args:
+        reservation (AddReservationSchema): Данные для создания бронирования.
+
+    Returns:
+        GetReservationSchema: Объект созданного бронирования.
+
+    Raises:
+        HTTPException: Если выбранный столик не найден или возникла ошибка
+        при сохранении.
+    """
     chek_table = await TableDAO.get_by_id(reservation.table_id)
 
     if chek_table is None:
@@ -47,6 +66,15 @@ async def create_reservation(
         summary="Удалить бронь"
     )
 async def delete_reservation(id: int) -> None:
+    """
+    Удаляет существующую бронь по указанному ID.
+
+    Args:
+        id (int): Идентификатор бронирования.
+
+    Raises:
+        HTTPException: Если возникла ошибка при удалении брони.
+    """
     try:
         return await ReservationDAO.delete_by_id(id)
     except SQLAlchemyError:

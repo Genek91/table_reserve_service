@@ -7,6 +7,16 @@ from app.database import Base
 
 
 class Reservation(Base):
+    """
+    Модель "Резервирование" для хранения информации о бронировании столиков.
+
+    Fields:
+        customer_name (str): Имя клиента, сделавшего резервирование.
+        reservation_time (datetime): Время начала бронирования.
+        duration_minutes (int): Длительность бронирования в минутах.
+        table_id (int): Внешний ключ на таблицу Table (идентификатор столика).
+        table (Table): Связанный объект модели Table (обратная связь).
+    """
     customer_name: Mapped[str]
     reservation_time: Mapped[datetime]
     duration_minutes: Mapped[int]

@@ -13,11 +13,30 @@ table_router = APIRouter(prefix='/tables', tags=['Столики'])
         "/", summary="Список всех столиков"
     )
 async def get_all_tables() -> list[GetTableSchema]:
+    """
+    Получение списка всех столиков ресторана.
+
+    Returns:
+        list[GetTableSchema]: Список объектов столиков.
+    """
     return await TableDAO.get_all()
 
 
 @table_router.post("/", summary="Cоздать новый столик")
 async def create_table(table: AddTableSchema) -> GetTableSchema:
+    """
+    Создание нового столика в ресторане.
+
+    Args:
+        table (AddTableSchema): Данные нового столика.
+
+    Returns:
+        GetTableSchema: Объект созданного столика.
+
+    Raises:
+        HTTPException: Если попытка создать столик привела к конфликту
+        уникальных значений.
+    """
     try:
         return await TableDAO.add(**table.model_dump())
     except IntegrityError:
@@ -33,6 +52,15 @@ async def create_table(table: AddTableSchema) -> GetTableSchema:
         summary="Удалить столик"
     )
 async def delete_table(id: int) -> None:
+    """
+    Удаляет столик по указанному ID.
+
+    Args:
+        id (int): Идентификатор столика.
+
+    Raises:
+        HTTPException: Если возникла ошибка при удалении столика.
+    """
     try:
         return await TableDAO.delete_by_id(id)
     except SQLAlchemyError:

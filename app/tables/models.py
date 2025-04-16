@@ -4,6 +4,16 @@ from app.database import Base, str_uniq
 
 
 class Table(Base):
+    """
+    Модель "Стол" для хранения информации о столиках в ресторане.
+
+    Fields:
+        name (str): Уникальное название столика.
+        seats (int): Количество посадочных мест за столом.
+        location (str): Местоположение столика в зале.
+        reservations: Бронировния, привязанные
+        к данному столу.
+    """
     name: Mapped[str_uniq]
     seats: Mapped[int]
     location: Mapped[str]

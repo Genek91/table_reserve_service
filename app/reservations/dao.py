@@ -12,6 +12,9 @@ from app.reservations.models import Reservation
 
 
 class ReservationDAO(BaseDAO):
+    """
+    Data Access Object для работы с моделями бронирования.
+    """
     model = Reservation
 
     @classmethod
@@ -19,6 +22,23 @@ class ReservationDAO(BaseDAO):
         cls, customer_name: str, reservation_time: datetime,
         duration_minutes: int, table_id: int
     ):
+        """
+        Проверка наличия конфликтов по времени и создание нового бронирования.
+
+        Args:
+            customer_name (str): Имя клиента.
+            reservation_time (datetime): Время начала бронирования.
+            duration_minutes (int): Продолжительность бронирования в минутах.
+            table_id (int): Идентификатор столика.
+
+        Raises:
+            HTTPException: Если возник конфликт по времени с существующими
+            бронированиями.
+            SQLAlchemyError: Если возникла ошибка при работе с базой данных.
+
+        Returns:
+            Reservation: Объект созданного бронирования.
+        """
         if reservation_time.tzinfo is not None:
             reservation_time = reservation_time.replace(tzinfo=None)
 

@@ -24,12 +24,17 @@ str_uniq = Annotated[str, mapped_column(unique=True, nullable=False)]
 
 
 class Base(AsyncAttrs, DeclarativeBase):
+    """
+    Базовый класс для всех моделей приложения.
+    """
     __abstract__ = True
 
+    # Автоматическое присвоение имени таблицы исходя из имени класса
     @declared_attr.directive
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
 
+    # Общие поля для всех наследуемых классов
     id: Mapped[int_pk]
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
