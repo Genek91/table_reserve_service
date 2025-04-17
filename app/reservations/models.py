@@ -22,7 +22,7 @@ class Reservation(Base):
     duration_minutes: Mapped[int]
 
     table_id: Mapped[int] = mapped_column(
-        ForeignKey("table.id"), nullable=False
+        ForeignKey("table.id", ondelete="CASCADE"), nullable=False
     )
     table: Mapped["Table"] = relationship("Table", back_populates="reservations")
 
