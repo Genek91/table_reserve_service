@@ -70,6 +70,12 @@ docker-compose exec app alembic upgrade head
 pytest
 ```
 
+Или запустить тесты в контейнере:
+
+```bash
+docker-compose exec app pytest
+```
+
 ###  Пример запросов API
 Получить список всех столиков:
 ```bash
