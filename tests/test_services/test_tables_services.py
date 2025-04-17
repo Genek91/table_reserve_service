@@ -1,5 +1,3 @@
-from random import randint
-
 import pytest
 
 from app.tables.models import Table
@@ -40,7 +38,7 @@ class TestTablesServices:
         """Тестирование добавления нового стола"""
         new_table_data = {
             "name": fake.name(),
-            "seats": randint(1, 10),
+            "seats": fake.random_int(1, 20),
             "location": fake.word()
         }
 

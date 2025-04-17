@@ -1,5 +1,3 @@
-from random import randint
-
 import pytest
 from fastapi import status
 
@@ -18,7 +16,7 @@ class TestTablesAPI:
         """
         data = {
             "name": fake.name(),
-            "seats": randint(1, 20),
+            "seats": fake.random_int(1, 20),
             "location": fake.word()
         }
 
